@@ -1,0 +1,19 @@
+{
+  "name": "@agrivest/ledger",
+  "version": "0.1.0",
+  "description": "Double-entry append-only ledger + M-Pesa adapter for Agri Vest",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --import tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "demo": "tsx demo.ts"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.2",
+    "@types/node": "^22",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

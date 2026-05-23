@@ -1,0 +1,17 @@
+{
+  "name": "agrivest",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Agri Vest \u2014 agricultural investment platform (ledger core, M-Pesa, API)",
+  "workspaces": [
+    "packages/ledger",
+    "packages/marketplace",
+    "packages/api"
+  ],
+  "scripts": {
+    "build": "npm run build -w @agrivest/ledger && npm run build -w @agrivest/marketplace && npm run build -w @agrivest/api",
+    "test": "npm test -w @agrivest/ledger && npm test -w @agrivest/marketplace",
+    "typecheck": "npm run typecheck -w @agrivest/ledger && npm run typecheck -w @agrivest/marketplace && npm run typecheck -w @agrivest/api",
+    "dev:api": "npm run dev -w @agrivest/api"
+  }
+}
