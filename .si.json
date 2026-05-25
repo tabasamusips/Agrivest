@@ -1,0 +1,22 @@
+{
+  "plugin": "org.smartide.plugin.git",
+  "run": "echo 'Workspace ready!' && git status",
+  "intelligence": {
+    ".html": {
+      "enabled": true,
+      "run": "vscode-html-language-server --stdio"
+    },
+    ".json": {
+      "enabled": true,
+      "run": "vscode-json-language-server --stdio"
+    },
+    ".go": {
+      "enabled": true,
+      "run": "gopls"
+    },
+    ".py": {
+      "enabled": true,
+      "run": "pylsp"
+    }
+  }
+}
