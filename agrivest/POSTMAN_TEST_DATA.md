@@ -1,0 +1,360 @@
+# AgriVest Postman Test Data (API payloads)
+
+This file documents the **request/response shapes** you can use in Postman to test the AgriVest **NestJS API**.
+
+> Scope: Auth (OTP/JWT), KYC, Wallet (balance/deposit/withdraw), Investing, Projects catalogue, and the public M-Pesa webhook endpoints.
+
+---
+
+## Base URL
+- Default (dev): `http://localhost:3000`
+
+---
+
+## Common headers
+### JSON
+`Content-Type: application/json`
+
+### Auth (JWT)
+All guarded endpoints use the JWT returned by `/auth/verify-otp`.
+
+- Header: `Authorization: Bearer <token>`
+
+---
+
+## 1) Auth (phone OTP)
+
+### 1.1 Request OTP
+**POST** `/auth/request-otp`
+
+**Body**
+```json
+{
+  "phone": "+254700000000"
+}
+```
+
+**Response**
+- In non-production (sandbox):
+```json
+{
+  "devOtp": "123456"
+}
+```
+- In production: returns `{}` (you’d get the OTP via SMS).
+
+---
+
+### 1.2 Verify OTP → JWT
+**POST** `/auth/verify-otp`
+
+**Body**
+```json
+{
+  "phone": "+254700000000",
+  "code": "123456"
+}
+```
+
+**Response**
+```json
+{
+  "token": "<jwt>",
+  "tokenType": "Bearer"
+}
+```
+
+Save this token for future requests.
+
+---
+
+### 1.3 Complete KYC (sandbox)
+**POST** `/auth/complete-kyc`
+
+**Headers**
+- `Authorization: Bearer <jwt>`
+
+**Body**
+- none (JWT subject is used)
+
+**Response**
+```json
+{
+  "status": "verified"
+}
+```
+
+> Note: Investing routes require KYC guard.
+
+---
+
+## 2) Wallet
+All wallet operations require JWT.
+
+### 2.1 Check balance
+**GET** `/wallet/balance`
+
+**Headers**
+- `Authorization: Bearer <jwt>`
+
+**Response** (wallet balance in cents/minor units)
+```json
+{
+  "cents": 120000
+}
+```
+
+---
+
+### 2.2 Deposit (M-Pesa STK push initiation)
+**POST** `/wallet/deposit`
+
+**Headers**
+- `Authorization: Bearer <jwt>`
+
+**Body**
+```json
+{
+  "amountCents": 50000,
+  "phone": "+254700000000"
+}
+```
+
+**Response**
+- Depends on ledger/payments implementation and your MPesa sandbox setup.
+- Expect something like an “initiate deposit” result (STK push request identifiers) or an error if MPesa is not configured.
+
+---
+
+### 2.3 Withdraw (B2C initiation)
+**POST** `/wallet/withdraw`
+
+**Headers**
+- `Authorization: Bearer <jwt>`
+
+**Body**
+```json
+{
+  "amountCents": 10000,
+  "phone": "+254711111111"
+}
+```
+
+**Response**
+- Depends on your B2C config and ledger payouts.
+
+---
+
+## 3) Investing
+
+### 3.1 Invest
+**POST** `/invest/:projectId`
+
+**Headers**
+- `Authorization: Bearer <jwt>`
+- KYC required
+
+**URL param**
+- `projectId`: string
+
+**Body**
+```json
+{
+  "amountCents": 50000
+}
+```
+
+**Response**
+```json
+{
+  "entryId": 123
+}
+```
+
+---
+
+### 3.2 Cancel investment (48-hour cooling-off)
+**POST** `/invest/cancel/:entryId`
+
+**Headers**
+- optional: controller doesn’t show AuthGuard in its method, but route is expected to be protected by global guards.
+
+**URL param**
+- `entryId`: numeric or string form accepted by `ledger.refundCoolingOff(Number(entryId))`
+
+**Body**
+- none
+
+**Response**
+```json
+{
+  "refunded": true
+}
+```
+
+---
+
+## 4) Projects / Marketplace
+
+### 4.1 List projects (catalog)
+**GET** `/projects`
+
+**Response**
+```json
+[
+  {
+    "id": "kiambu-poultry",
+    "title": "Kiambu Broiler Poultry",
+    "target": 85000000,
+    "base": 61200000,
+    "grade": "B",
+    "range": "16–19%",
+    "cycle": "Cycle 14"
+  }
+]
+```
+
+> Shape may differ depending on the current marketplace implementation.
+
+---
+
+### 4.2 Get single project
+**GET** `/projects/:id`
+
+**Response**
+```json
+{
+  "id": "kiambu-poultry",
+  "title": "Kiambu Broiler Poultry",
+  "target": 85000000,
+  "grade": "B"
+}
+```
+
+---
+
+### 4.3 Sponsor submit a project (underwriting)
+**POST** `/projects`
+
+**Headers**
+- `Authorization: Bearer <jwt>`
+
+**Body**
+```json
+{
+  "title": "My venture",
+  "venture": "poultry",
+  "location": "Kiambu County",
+  "targetCents": 85000000,
+  "cycleMonths": 4,
+  "model": "Fixed-return note",
+  "rangePct": 18
+}
+```
+
+> The current controller passes `b` directly to `market.submitProject({ ...b, sponsorId: req.user.sub })`.
+> Use the field names expected by the marketplace package.
+
+---
+
+### 4.4 Sponsor post an update
+**POST** `/projects/:id/updates`
+
+**Headers**
+- `Authorization: Bearer <jwt>`
+
+**Body**
+```json
+{
+  "body": "Week 2: feed supplier invoice paid",
+  "hasPhoto": true
+}
+```
+
+---
+
+## 5) M-Pesa Webhooks (public endpoints)
+These endpoints are **unauthenticated** because Safaricom (Daraja) calls them.
+
+### 5.1 STK callback
+**POST** `/mpesa/stk-callback`
+
+**Important**
+- The ledger uses the M-Pesa receipt identifiers as the **idempotency key** via the `ref` stored for the entry.
+- Your callback payload must follow Daraja’s structure so `parseStkCallback(body)` can extract:
+  - receipt id / checkout request id
+  - amount
+  - result code/message
+
+Because the exact Daraja payload shape depends on Daraja test mode, use this approach:
+1) Trigger a real STK push from `/wallet/deposit` against your Daraja sandbox.
+2) Copy the callback body Daraja posts.
+
+**Return always**
+```json
+{
+  "ResultCode": 0,
+  "ResultDesc": "Accepted"
+}
+```
+
+---
+
+### 5.2 B2C result callback
+**POST** `/mpesa/b2c-result`
+
+**Body**
+- Use the callback body generated by Daraja.
+
+**Return always**
+```json
+{
+  "ResultCode": 0,
+  "ResultDesc": "Accepted"
+}
+```
+
+---
+
+### 5.3 B2C timeout callback
+**POST** `/mpesa/b2c-timeout`
+
+**Body**
+- Daraja timeout callback body.
+
+**Return always**
+```json
+{
+  "ResultCode": 0,
+  "ResultDesc": "Accepted"
+}
+```
+
+---
+
+## Suggested Postman flow (happy path)
+1. `POST /auth/request-otp` with phone
+2. `POST /auth/verify-otp` using `devOtp`
+3. `POST /auth/complete-kyc` (JWT)
+4. `GET /wallet/balance` (JWT)
+5. `POST /projects` optional (JWT) — if you have a sponsor flow enabled
+6. `GET /projects` to fetch a projectId
+7. `POST /invest/:projectId` (JWT)
+8. `POST /wallet/deposit` (JWT) to initiate deposit (then let Daraja webhook settle)
+
+---
+
+## Notes for cents vs KES
+- API expects **minor units** in most money calls as `amountCents`.
+- Example conversion:
+  - KES 500.00 → `50000` cents
+  - KES 1,000.00 → `100000` cents
+
+---
+
+## Where to update this doc
+If you find any mismatch with your current deployed payloads:
+- Update after checking:
+  - `packages/api/src/*` controllers for exact request shapes
+  - `packages/ledger/src/mpesa/*` for exact callback parsing expectations
+
