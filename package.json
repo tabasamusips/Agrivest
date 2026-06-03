@@ -2,7 +2,7 @@
   "name": "agrivest",
   "private": true,
   "version": "0.1.0",
-  "description": "Agri Vest \u2014 agricultural investment platform (ledger core, M-Pesa, API)",
+  "description": "Agri Vest — agricultural investment platform (ledger core, M-Pesa, API)",
   "workspaces": [
     "packages/ledger",
     "packages/marketplace",
@@ -13,5 +13,10 @@
     "test": "npm test -w @agrivest/ledger && npm test -w @agrivest/marketplace",
     "typecheck": "npm run typecheck -w @agrivest/ledger && npm run typecheck -w @agrivest/marketplace && npm run typecheck -w @agrivest/api",
     "dev:api": "npm run dev -w @agrivest/api"
+  },
+  "dependencies": {
+    "lucide-react": "^1.17.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   }
 }

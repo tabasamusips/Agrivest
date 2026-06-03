@@ -17,6 +17,14 @@
     ".py": {
       "enabled": true,
       "run": "pylsp"
+    },
+    ".js": {
+      "enabled": true,
+      "run": "typescript-language-server --stdio"
+    },
+    ".jsx": {
+      "enabled": true,
+      "run": "typescript-language-server --stdio"
     }
   }
 }
