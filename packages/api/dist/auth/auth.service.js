@@ -22,31 +22,29 @@ let AuthService = class AuthService {
     }
     async requestOtp(phone) {
         const code = String(Math.floor(100000 + Math.random() * 900000));
-        const expires = Date.now() + 10 * 60 * 1000; // 10 minutes
-        // Upsert into postgres — survives hot-reloads
+        const expires = Date.now() + 10 * 60 * 1000;
         await this.db.query(`INSERT INTO otp_codes (phone, code, expires_at)
        VALUES ($1, $2, $3)
        ON CONFLICT (phone) DO UPDATE
-         SET code = $2, expires_at = $3`, [phone, code, expires]);
-        console.log(`[OTP] ${phone} → ${code}`);
-        // Always return devOtp in non-production
+         SET code = EXCLUDED.code, expires_at = EXCLUDED.expires_at`, [phone, code, expires]);
+        console.log(`[OTP] ${phone} -> ${code}`);
         return process.env.NODE_ENV === "production" ? {} : { devOtp: code };
     }
     async verifyOtp(phone, code) {
         const { rows } = await this.db.query(`SELECT code, expires_at FROM otp_codes WHERE phone = $1`, [phone]);
         const rec = rows[0];
-        if (!rec || rec.expires_at < Date.now() || rec.code !== code) {
+        const now = Date.now();
+        const expires = Number(rec?.expires_at); // cast to number
+        console.log(`[VERIFY] phone=${phone} code=${code} stored=${rec?.code} expires=${expires} now=${now} expired=${expires < now}`);
+        if (!rec || expires < now || rec.code !== code) {
             throw new common_1.UnauthorizedException("invalid or expired code");
         }
-        // Delete used OTP
         await this.db.query(`DELETE FROM otp_codes WHERE phone = $1`, [phone]);
-        const userId = phone;
-        const token = await this.jwt.signAsync({ sub: userId, phone });
+        const token = await this.jwt.signAsync({ sub: phone, phone });
         return { token };
     }
     async completeKyc(userId) {
-        await this.db.query(`UPDATE users SET kyc_verified = true, kyc_at = now()
-       WHERE id = $1`, [userId]);
+        await this.db.query(`UPDATE users SET kyc_verified = true, kyc_at = now() WHERE id = $1`, [userId]);
         return { status: "verified" };
     }
 };
