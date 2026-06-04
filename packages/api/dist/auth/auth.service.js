@@ -8,55 +8,50 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const pg_1 = require("pg");
-const ledger_module_js_1 = require("../ledger/ledger.module.js");
-/**
- * Phone-first auth, mirroring the prototype's onboarding. In production the OTP
- * is sent by SMS and stored hashed with a TTL; here it is generated and (for the
- * sandbox) returned so you can test without an SMS gateway. KYC status gates
- * investing — enforce it in a guard before money-moving routes.
- */
 let AuthService = class AuthService {
     jwt;
-    pool;
-    otps = new Map();
-    constructor(jwt, pool) {
+    db;
+    constructor(jwt) {
         this.jwt = jwt;
-        this.pool = pool;
+        this.db = new pg_1.Pool({ connectionString: process.env.DATABASE_URL });
     }
     async requestOtp(phone) {
         const code = String(Math.floor(100000 + Math.random() * 900000));
-        this.otps.set(phone, { code, expires: Date.now() + 5 * 60_000 });
-        // TODO: send via SMS provider. Sandbox: surface it for testing only.
+        const expires = Date.now() + 10 * 60 * 1000; // 10 minutes
+        // Upsert into postgres — survives hot-reloads
+        await this.db.query(`INSERT INTO otp_codes (phone, code, expires_at)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (phone) DO UPDATE
+         SET code = $2, expires_at = $3`, [phone, code, expires]);
+        console.log(`[OTP] ${phone} → ${code}`);
+        // Always return devOtp in non-production
         return process.env.NODE_ENV === "production" ? {} : { devOtp: code };
     }
-    /** Sandbox KYC: mark verified after ID + liveness (the prototype's onboarding). */
-    async completeKyc(userId) {
-        await this.pool.query(`INSERT INTO kyc(user_id, status) VALUES ($1,'verified')
-       ON CONFLICT (user_id) DO UPDATE SET status='verified', updated_at=now()`, [userId]);
-        return { status: "verified" };
-    }
     async verifyOtp(phone, code) {
-        const rec = this.otps.get(phone);
-        if (!rec || rec.expires < Date.now() || rec.code !== code) {
+        const { rows } = await this.db.query(`SELECT code, expires_at FROM otp_codes WHERE phone = $1`, [phone]);
+        const rec = rows[0];
+        if (!rec || rec.expires_at < Date.now() || rec.code !== code) {
             throw new common_1.UnauthorizedException("invalid or expired code");
         }
-        this.otps.delete(phone);
-        const userId = phone; // phone is the stable identity; map to a user row in production
+        // Delete used OTP
+        await this.db.query(`DELETE FROM otp_codes WHERE phone = $1`, [phone]);
+        const userId = phone;
         const token = await this.jwt.signAsync({ sub: userId, phone });
         return { token };
+    }
+    async completeKyc(userId) {
+        await this.db.query(`UPDATE users SET kyc_verified = true, kyc_at = now()
+       WHERE id = $1`, [userId]);
+        return { status: "verified" };
     }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
-    __param(1, (0, common_1.Inject)(ledger_module_js_1.PG_POOL)),
-    __metadata("design:paramtypes", [jwt_1.JwtService, pg_1.Pool])
+    __metadata("design:paramtypes", [jwt_1.JwtService])
 ], AuthService);

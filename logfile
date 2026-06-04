@@ -1,0 +1,4 @@
+2026-06-03 15:47:53.509 GMT [10354] LOG:  skipping missing configuration file "/data/data/org.smartide.code/files/usr/var/lib/postgresql/postgresql.auto.conf"
+postgres: could not find the database system
+Expected to find it in the directory "/data/data/org.smartide.code/files/usr/var/lib/postgresql",
+but could not open file "/data/data/org.smartide.code/files/usr/var/lib/postgresql/global/pg_control": No such file or directory

@@ -25,6 +25,10 @@
     ".jsx": {
       "enabled": true,
       "run": "typescript-language-server --stdio"
+    },
+    ".sh": {
+      "enabled": true,
+      "run": "bash-language-server start"
     }
   }
 }

@@ -509,15 +509,16 @@ function Onboarding({ onOtpVerified, onKycDone }) {
       <div style={{ fontSize:13.5,color:"var(--muted)",marginTop:8,marginBottom:22 }}>Sent to +254 {phone}</div>
       {devOtp && <div style={{ marginBottom:16,padding:"10px 14px",borderRadius:12,background:"#c99a3a1a",border:"1px solid #c99a3a44",fontSize:13,color:"var(--gold)",fontWeight:700 }}>Dev sandbox OTP: <span className="tnum">{devOtp}</span></div>}
       <div style={{ display:"flex",gap:10,justifyContent:"center" }}>
-        {[0,1,2,3].map(i=><div key={i} className="card serif" style={{ width:54,height:62,borderRadius:14,display:"grid",placeItems:"center",fontSize:26,fontWeight:600,color:"var(--g700)",border:otp.length===i?"2px solid var(--g600)":"1px solid var(--line)" }}>{otp[i]||""}</div>)}
+        {[0,1,2,3,4,5].map(i=><div key={i}
+        className="card serif" style={{ width:54,height:62,borderRadius:14,display:"grid",placeItems:"center",fontSize:26,fontWeight:600,color:"var(--g700)",border:otp.length===i?"2px solid var(--g600)":"1px solid var(--line)" }}>{otp[i]||""}</div>)}
       </div>
       <div style={{ display:"flex",flexWrap:"wrap",gap:10,marginTop:26,width:222,marginLeft:"auto",marginRight:"auto",justifyContent:"center" }}>
-        {[1,2,3,4,5,6,7,8,9,0].map(n=><button key={n} className="btn" onClick={()=>setOtp(o=>(o+n).slice(0,4))} style={{ width:64,height:46,background:"#1f4a2c12",color:"var(--ink)",fontSize:18 }}>{n}</button>)}
+        {[1,2,3,4,5,6,7,8,9,0].map(n=><button key={n} className="btn" onClick={()=>setOtp(o=>(o+n).slice(0,6))} style={{ width:64,height:46,background:"#1f4a2c12",color:"var(--ink)",fontSize:18 }}>{n}</button>)}
         <button className="btn" onClick={()=>setOtp(o=>o.slice(0,-1))} style={{ width:64,height:46,background:"#1f4a2c12",color:"var(--ink)",fontSize:18 }}>⌫</button>
       </div>
       {err && <div style={{ marginTop:10,fontSize:12.5,color:"var(--gE)",fontWeight:600,textAlign:"center" }}>{err}</div>}
       <div style={{ flex:1 }} />
-      <button className="btn btn-primary" onClick={verifyOtp} disabled={otp.length<4||loading} style={{ padding:16,fontSize:15,display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:otp.length>=4?1:.45 }}>
+      <button className="btn btn-primary" onClick={verifyOtp} disabled={otp.length<6||loading} style={{ padding:16,fontSize:15,display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:otp.length>=6?1:.45 }}>
         {loading ? <Spinner size={18} color="#fff" /> : null} Verify
       </button>
     </div>
