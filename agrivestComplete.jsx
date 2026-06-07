@@ -444,7 +444,7 @@ function Onboarding({ onOtpVerified, onKycDone }) {
   const verifyOtp = async () => {
     setErr(""); setLoading(true);
     try {
-      const data = await apiFetch("/auth/verify-otp", { method:"POST", body:JSON.stringify({ phone: fullPhone, otp }) });
+      const data = await apiFetch("/auth/verify-otp", { method:"POST", body:JSON.stringify({ phone: fullPhone, code: otp }) });
       tokenRef.current = data.token;
       setToken(data.token);        // persist
       onOtpVerified(data.token);
