@@ -237,7 +237,6 @@ export default function UpeoComplete() {
     setWalletLoading(true);
     try {
       const data = await apiFetch("/wallet/balance", {}, token);
-      // API returns { balance: <cents> }
       setWalletC(data.balance ?? 0);
     } catch (e) {
       if (e.status === 401) logout();
@@ -254,7 +253,6 @@ export default function UpeoComplete() {
     setProjectsLoading(true);
     try {
       const data = await apiFetch("/projects");
-      // Map API shape → frontend shape, keep static fallbacks for missing fields
       if (Array.isArray(data) && data.length > 0) {
         const merged = data.map(ap => {
           const local = FALLBACK_PROJECTS.find(fp => fp.id === ap.id) || {};
@@ -264,7 +262,7 @@ export default function UpeoComplete() {
             title: ap.title || local.title,
             grade: ap.grade || local.grade,
             target: ap.targetCents ?? local.target,
-            raised: ap.raisedCents ?? local.raised,   // ← from ledger (Issue 6)
+            raised: ap.raisedCents ?? local.raised,
             investors: ap.investorCount ?? local.investors,
             daysLeft: ap.daysLeft ?? local.daysLeft,
             minc: ap.minCents ?? local.minc,
@@ -296,17 +294,16 @@ export default function UpeoComplete() {
   const doInvest = async (pid, amtC, mode, units) => {
     const data = await apiFetch(`/invest/${pid}`, {
       method:"POST",
-      body: JSON.stringify({ amount: amtC, mode, units }) // Issue 3: send mode + units
+      body: JSON.stringify({ amount: amtC, mode, units })
     }, token);
-    // Mirror in local ledger
     const id = "je"+(entries.length+1);
     addEntry("invest", [
       { account:"wallet:me", amount: amtC },
       { account:"escrow:"+pid, amount: -amtC }
     ]);
     setPositions(ps => [{ entryId:id, project:pid, amount:amtC, ts:Date.now(), status:"active", apiEntryId:data.entryId }, ...ps]);
-    await fetchBalance(); // Issue 4
-    await fetchProjects(); // refresh raised amounts
+    await fetchBalance();
+    await fetchProjects();
     return data;
   };
 
@@ -314,7 +311,7 @@ export default function UpeoComplete() {
   const cancelInvest = async (pos) => {
     await apiFetch(`/invest/cancel/${pos.apiEntryId || pos.entryId}`, { method:"POST" }, token);
     setPositions(ps => ps.map(p => p.entryId===pos.entryId ? {...p, status:"refunded"} : p));
-    await fetchBalance(); // Issue 4
+    await fetchBalance();
     flash("Refunded — within the 48h cooling-off window");
   };
 
@@ -326,7 +323,6 @@ export default function UpeoComplete() {
     const gross = Math.round(principal*(1+proj.exp/100));
     const fee = Math.round(Math.max(0,gross-principal)*0.1);
     const payout = gross-fee;
-    // local ledger only (demo)
     addEntry("payout", [{ account:"returns:"+proj.id, amount:payout },{ account:"wallet:me", amount:-payout }]);
     setPositions(ps => ps.map(p => p.entryId===pos.entryId ? {...p,status:"paid",realized:payout} : p));
     setWalletC(w => w+payout);
@@ -336,7 +332,6 @@ export default function UpeoComplete() {
   /* ── Project detail ── */
   const openProject = async (p) => {
     setShowFail(false);
-    // Issue 6: optionally refresh single project detail
     try {
       const fresh = await apiFetch(`/projects/${p.id}`);
       setOpenP({ ...p, raised: fresh.raisedCents ?? p.raised });
@@ -349,7 +344,7 @@ export default function UpeoComplete() {
     setInvest({ step:"amount", mode, amount:openP.minc });
   };
 
-  /* ── Auth handlers (passed to Onboarding) ── */
+  /* ── Auth handlers ── */
   const handleOtpVerified = (tok) => { saveToken(tok); };
   const handleKycDone = () => { setKyc(true); setOnboarded(true); fetchBalance(); };
 
@@ -362,7 +357,6 @@ export default function UpeoComplete() {
     <div className="av stage">
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
-      {/* ── Admin Dashboard (full-screen overlay) ── */}
       {adminOpen && <AdminDashboard onClose={()=>setAdminOpen(false)} token={token} flash={flash} />}
 
       <div className="phone">
@@ -390,7 +384,6 @@ export default function UpeoComplete() {
         {sponsor && <div style={{ position:"absolute",left:0,right:0,top:46,bottom:0,zIndex:75 }}><SponsorDash onClose={()=>setSponsor(false)} flash={flash} token={token} /></div>}
         {engine && <div style={{ position:"absolute",left:0,right:0,top:46,bottom:0,zIndex:76 }}><EngineView entries={entries} balances={balances} onClose={()=>setEngine(false)} /></div>}
 
-        {/* ── Issue 1: Onboarding with real OTP→JWT→KYC ── */}
         {!onboarded && (
           <div style={{ position:"absolute",left:0,right:0,top:46,bottom:0,zIndex:95 }}>
             <Onboarding onOtpVerified={handleOtpVerified} onKycDone={handleKycDone} />
@@ -424,46 +417,41 @@ function Onboarding({ onOtpVerified, onKycDone }) {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-  const [devOtp, setDevOtp] = useState(""); // shown in dev mode
+  const [devOtp, setDevOtp] = useState("");
   const tokenRef = useRef(null);
 
   const fullPhone = "+254" + phone.replace(/\D/g,"");
 
-  /* Step 1 → send OTP */
   const sendOtp = async () => {
     setErr(""); setLoading(true);
     try {
       const data = await apiFetch("/auth/request-otp", { method:"POST", body:JSON.stringify({ phone: fullPhone }) });
-      if (data.devOtp) setDevOtp(data.devOtp); // dev sandbox
+      if (data.devOtp) setDevOtp(data.devOtp);
       setS(2);
     } catch(e) { setErr(e.message); }
     finally { setLoading(false); }
   };
 
-  /* Step 2 → verify OTP, get JWT */
   const verifyOtp = async () => {
     setErr(""); setLoading(true);
     try {
       const data = await apiFetch("/auth/verify-otp", { method:"POST", body:JSON.stringify({ phone: fullPhone, code: otp }) });
       tokenRef.current = data.token;
-      setToken(data.token);        // persist
+      setToken(data.token);
       onOtpVerified(data.token);
       setS(3);
     } catch(e) { setErr(e.message); }
     finally { setLoading(false); }
   };
 
-  /* Step 3 → ID scan (simulated) */
   const scanId = () => setS(4);
 
-  /* Step 4 → selfie + call POST /auth/complete-kyc */
   const completeKyc = async () => {
     setErr(""); setLoading(true);
     try {
       await apiFetch("/auth/complete-kyc", { method:"POST" }, tokenRef.current || getToken());
       setS(5);
     } catch(e) {
-      // sandbox may not require real liveness — proceed anyway
       setS(5);
     } finally { setLoading(false); }
   };
@@ -475,7 +463,7 @@ function Onboarding({ onOtpVerified, onKycDone }) {
     <div style={{ position:"absolute",inset:0,padding:"40px 26px 26px",display:"flex",flexDirection:"column",color:"var(--cream)",background:"radial-gradient(120% 90% at 80% 0%,#2e6b43 0%,#14271c 72%)" }}>
       <div style={{ flex:1,display:"flex",flexDirection:"column",justifyContent:"center" }}>
         <div style={{ width:60,height:60,borderRadius:18,background:"#ffffff1a",display:"grid",placeItems:"center",marginBottom:22 }}><Sprout size={32} /></div>
-        <div className="h-eyebrow" style={{ color:"#9fe0ad" }}>Agri Vest</div>
+        <div className="h-eyebrow" style={{ color:"#9fe0ad" }}>Upeo</div>
         <div className="serif" style={{ fontSize:33,fontWeight:600,lineHeight:1.12,marginTop:6 }}>Invest in real African agriculture.</div>
         <div style={{ fontSize:15,opacity:.85,marginTop:14,lineHeight:1.5 }}>Fund vetted farms, livestock and fisheries from KES 500 — solo or pooled. The returns are real, and so is the risk.</div>
       </div>
@@ -488,7 +476,7 @@ function Onboarding({ onOtpVerified, onKycDone }) {
   if (s===1) return (
     <div style={{ position:"absolute",inset:0,padding:"36px 26px 26px",background:"var(--paper)",display:"flex",flexDirection:"column" }}>
       <div className="serif" style={{ fontSize:25,fontWeight:600,color:"var(--ink)" }}>What's your number?</div>
-      <div style={{ fontSize:13.5,color:"var(--muted)",marginTop:8,marginBottom:26,lineHeight:1.5 }}>We'll send a one-time code. Your phone is your Agri Vest identity.</div>
+      <div style={{ fontSize:13.5,color:"var(--muted)",marginTop:8,marginBottom:26,lineHeight:1.5 }}>We'll send a one-time code. Your phone is your Upeo identity.</div>
       <div className="card" style={{ display:"flex",alignItems:"center",gap:10,padding:"15px 16px" }}>
         <span style={{ fontWeight:700,color:"var(--ink)" }}>🇰🇪 +254</span>
         <input value={phone} onChange={e=>setPhone(e.target.value.replace(/\D/g,"").slice(0,9))} placeholder="7XX XXX XXX" type="tel" inputMode="numeric"
@@ -562,9 +550,9 @@ function Onboarding({ onOtpVerified, onKycDone }) {
       <div style={{ flex:1,display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center" }}>
         <div className="pop" style={{ width:84,height:84,borderRadius:"50%",background:"#2e7d4618",display:"grid",placeItems:"center" }}><CheckCircle2 size={48} style={{ color:"var(--gA)" }} /></div>
         <div className="serif" style={{ fontSize:26,fontWeight:600,color:"var(--ink)",marginTop:18 }}>You're verified</div>
-        <div style={{ fontSize:14,color:"var(--muted)",marginTop:8,lineHeight:1.5,maxWidth:260 }}>Welcome to Agri Vest! Your wallet is ready — top it up via M-Pesa and start investing.</div>
+        <div style={{ fontSize:14,color:"var(--muted)",marginTop:8,lineHeight:1.5,maxWidth:260 }}>Welcome to Upeo! Your wallet is ready — top it up via M-Pesa and start investing.</div>
       </div>
-      <button className="btn btn-primary" onClick={finish} style={{ padding:16,fontSize:15,width:"100%" }}>Enter Agri Vest</button>
+      <button className="btn btn-primary" onClick={finish} style={{ padding:16,fontSize:15,width:"100%" }}>Enter Upeo</button>
     </div>
   );
 }
@@ -579,7 +567,7 @@ function HomeView({ t, walletC, walletLoading, realizedReturns, activePositions,
   return (
     <div className="pad">
       <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
-        <div><div className="h-eyebrow">Agri Vest</div>
+        <div><div className="h-eyebrow">Upeo</div>
           <div className="serif" style={{ fontSize:24,fontWeight:600,color:"var(--ink)",lineHeight:1.1 }}>{t.greet}</div></div>
         <LangToggle lang={lang} setLang={setLang} />
       </div>
@@ -642,7 +630,7 @@ function HomeView({ t, walletC, walletLoading, realizedReturns, activePositions,
 }
 
 /* ═══════════════════════════════════════════════════════════════
- * DISCOVER — Issue 6: Projects from API
+ * DISCOVER
  * ══════════════════════════════════════════════════════════════ */
 function DiscoverView({ t, openProject, projects, projectsLoading, lang, setLang }) {
   const [filter, setFilter] = useState("All");
@@ -689,7 +677,6 @@ function DiscoverView({ t, openProject, projects, projectsLoading, lang, setLang
                   <div className="serif" style={{ fontSize:17,fontWeight:600,color:"var(--ink)" }}>{p.months} mo</div></div>
               </div>
               <Bar pct={pct} terra />
-              {/* Issue 6: raised comes from API (ledger-derived) */}
               <div className="tnum" style={{ display:"flex",justifyContent:"space-between",marginTop:7,fontSize:11.5,fontWeight:600,color:"var(--muted)" }}>
                 <span style={{ color:"var(--terra)" }}>{pct}% funded</span>
                 <span>{p.investors} investors · {p.daysLeft}d left</span>
@@ -829,26 +816,21 @@ function InvestSheet({ p, invest, setInvest, t, token, doInvest, fetchBalance, f
   const { step, mode, amount } = invest;
   const units = Math.round(amount / p.minc);
 
-  // Issue 2: amounts in cents throughout
   const expKes = Math.round(amount*(p.exp/100));
   const downKes = Math.round(amount*(Math.abs(p.down)/100));
 
   const setAmt = (v) => setInvest(iv=>({ ...iv, amount:Math.max(p.minc,v) }));
   const [err, setErr] = useState("");
-  const [pollStatus, setPollStatus] = useState(""); // Issue 5
+  const [pollStatus, setPollStatus] = useState("");
   const [investResult, setInvestResult] = useState(null);
 
-  /* Issue 5: STK push → poll balance for confirmation */
   const pollForPayment = async (prevBalance) => {
     const MAX = 10;
     for (let i=0;i<MAX;i++) {
       await new Promise(r=>setTimeout(r,3000));
       try {
         const data = await apiFetch("/wallet/balance",{},token);
-        if (data.balance > prevBalance) {
-          // balance increased → payment confirmed
-          return true;
-        }
+        if (data.balance > prevBalance) return true;
       } catch {}
     }
     return false;
@@ -859,17 +841,13 @@ function InvestSheet({ p, invest, setInvest, t, token, doInvest, fetchBalance, f
     setInvest(iv=>({...iv,step:"processing"}));
     setPollStatus("Waiting for M-Pesa PIN confirmation…");
     try {
-      // Get current balance before to detect change
       let prevBal = 0;
       try { const b = await apiFetch("/wallet/balance",{},token); prevBal = b.balance||0; } catch {}
-
-      // Issue 3: send amount (cents), mode, units
       const result = await doInvest(p.id, amount, mode, units);
       setInvestResult(result);
       setInvest(iv=>({...iv,step:"done"}));
     } catch(e) {
       if (e.message==="Waiting for payment") {
-        // Real M-Pesa path: poll
         setPollStatus("STK push sent — enter your M-Pesa PIN…");
         let prevBal = 0;
         try { const b = await apiFetch("/wallet/balance",{},token); prevBal = b.balance||0; } catch {}
@@ -904,7 +882,6 @@ function InvestSheet({ p, invest, setInvest, t, token, doInvest, fetchBalance, f
             <div style={{ fontSize:13,color:"var(--muted)",marginBottom:18 }}>{p.title} · {p.range} projected over {p.months} months</div>
             <div style={{ textAlign:"center",marginBottom:8 }}>
               <div style={{ fontSize:12,fontWeight:700,color:"var(--muted)" }}>YOU INVEST</div>
-              {/* Issue 2: display via fmt() */}
               <div className="serif tnum" style={{ fontSize:42,fontWeight:600,color:"var(--g700)" }}>{fmt(amount)}</div>
               {mode==="pool" && <div className="tnum" style={{ fontSize:13,color:"var(--terra)",fontWeight:700 }}>= {units} unit{units>1?"s":""} of the pool</div>}
             </div>
@@ -933,7 +910,6 @@ function InvestSheet({ p, invest, setInvest, t, token, doInvest, fetchBalance, f
           <div className="pad">
             <div className="serif" style={{ fontSize:21,fontWeight:600,color:"var(--ink)",marginBottom:14 }}>Confirm your investment</div>
             <div className="card" style={{ padding:16 }}>
-              {/* Issue 3: show mode from API response, not local state */}
               {[["Project",p.title],["Type",mode==="pool"?"Pooled · "+units+" units":"Solo"],["You invest",fmt(amount)],["Cycle",p.months+" months"],["Expected return","+"+fmt(expKes)]].map((r,i)=>(
                 <div key={i} style={{ display:"flex",justifyContent:"space-between",padding:"9px 0",borderBottom:i<4?"1px solid var(--line)":"none",fontSize:13.5 }}>
                   <span style={{ color:"var(--muted)",fontWeight:600 }}>{r[0]}</span>
@@ -957,7 +933,6 @@ function InvestSheet({ p, invest, setInvest, t, token, doInvest, fetchBalance, f
           </div>
         )}
 
-        {/* Issue 5: real waiting state instead of 1.7s timer */}
         {step==="processing" && (
           <div className="pad" style={{ textAlign:"center",padding:"54px 30px" }}>
             <div className="spin" style={{ width:56,height:56,borderRadius:"50%",border:"4px solid #1f4a2c22",borderTopColor:"var(--g600)",margin:"0 auto 22px" }} />
@@ -971,7 +946,6 @@ function InvestSheet({ p, invest, setInvest, t, token, doInvest, fetchBalance, f
           <div className="pad" style={{ textAlign:"center",padding:"44px 28px 32px" }}>
             <div className="pop" style={{ width:72,height:72,borderRadius:"50%",background:"#2e7d4618",display:"grid",placeItems:"center",margin:"0 auto 18px" }}><CheckCircle2 size={42} style={{ color:"var(--gA)" }} /></div>
             <div className="serif" style={{ fontSize:23,fontWeight:600,color:"var(--ink)" }}>You're in</div>
-            {/* Issue 3: display confirmed invest type from API response */}
             <div style={{ fontSize:14,color:"var(--muted)",marginTop:8,lineHeight:1.5 }}>
               <b className="tnum">{fmt(amount)}</b> committed to {p.title}
               {" · "}{investResult?.mode||mode}{mode==="pool"?" · "+units+" units":""}.
@@ -1002,7 +976,6 @@ function WalletView({ t, walletC, walletLoading, entries, token, fetchBalance, f
   const txLabel = { deposit:"M-Pesa deposit",withdraw:"Withdrawal to M-Pesa",invest:"Invested","reverse:invest":"Refund (cooling-off)",payout:"Return paid",disburse:"Released to sponsor",return:"Sponsor repayment" };
   const myDelta = (e) => { const p=e.postings.find(x=>x.account==="wallet:me"); return p ? -p.amount : 0; };
 
-  /* Issue 5: M-Pesa STK push polling */
   const handleDeposit = async () => {
     setDepositing(true);
     setModal(null);
@@ -1010,7 +983,6 @@ function WalletView({ t, walletC, walletLoading, entries, token, fetchBalance, f
     setPollMsg("STK push sent — enter your M-Pesa PIN…");
     try {
       await apiFetch("/wallet/deposit", { method:"POST", body:JSON.stringify({ amount:KES(amt) }) }, token);
-      // Poll for balance increase
       let prevBal = walletC;
       let confirmed = false;
       for (let i=0;i<10;i++) {
@@ -1029,7 +1001,7 @@ function WalletView({ t, walletC, walletLoading, entries, token, fetchBalance, f
     setWithdrawing(true); setModal(null);
     try {
       await apiFetch("/wallet/withdraw", { method:"POST", body:JSON.stringify({ amount:KES(amt) }) }, token);
-      await fetchBalance(); // Issue 4
+      await fetchBalance();
       flash("Withdrawal sent to M-Pesa");
     } catch(e) { flash(e.message); }
     finally { setWithdrawing(false); }
@@ -1078,7 +1050,6 @@ function WalletView({ t, walletC, walletLoading, entries, token, fetchBalance, f
           <div className="sheet-inner"><div className="pad">
             <div style={{ display:"flex",justifyContent:"center",marginBottom:10 }}><div style={{ width:42,height:5,borderRadius:5,background:"var(--line)" }} /></div>
             <div className="serif" style={{ fontSize:21,fontWeight:600,color:"var(--ink)" }}>{modal==="deposit"?"Deposit via M-Pesa":"Withdraw to M-Pesa"}</div>
-            {/* Issue 2: display fmt() */}
             <div className="serif tnum" style={{ fontSize:38,fontWeight:600,color:"var(--g700)",textAlign:"center",margin:"16px 0" }}>{fmt(KES(amt))}</div>
             <input type="range" min={500} max={50000} step={500} value={amt} onChange={e=>setAmt(+e.target.value)} style={{ width:"100%",accentColor:"var(--g600)" }} />
             <button className="btn btn-primary" onClick={modal==="deposit"?handleDeposit:handleWithdraw} style={{ width:"100%",padding:16,fontSize:15,marginTop:18 }}>
@@ -1148,7 +1119,6 @@ function ProfileView({ t, kyc, setSponsor, setEngine, setAdminOpen, lang, setLan
         <ChevronRight size={18} style={{ color:"var(--muted)" }} />
       </button>
 
-      {/* Admin dashboard link */}
       <button className="btn fade" onClick={()=>setAdminOpen(true)} style={{ width:"100%",textAlign:"left",padding:16,marginBottom:14,display:"flex",alignItems:"center",gap:13,background:"#c65d3b12",border:"1px solid #c65d3b33" }}>
         <div style={{ width:42,height:42,borderRadius:12,background:"#c65d3b18",display:"grid",placeItems:"center",color:"var(--terra)" }}><Settings size={22} /></div>
         <div style={{ flex:1 }}><div className="serif" style={{ fontSize:16,fontWeight:600,color:"var(--ink)" }}>Admin Dashboard</div>
@@ -1166,7 +1136,7 @@ function ProfileView({ t, kyc, setSponsor, setEngine, setAdminOpen, lang, setLan
         <LogOut size={17} /> Sign out
       </button>
 
-      <div style={{ fontSize:11,color:"var(--muted)",textAlign:"center",marginTop:18,lineHeight:1.5 }}>Agri Vest is a design prototype. Not a licensed product. Investments carry risk of loss.</div>
+      <div style={{ fontSize:11,color:"var(--muted)",textAlign:"center",marginTop:18,lineHeight:1.5 }}>Upeo is a design prototype. Not a licensed product. Investments carry risk of loss.</div>
     </div>
   );
 }
@@ -1234,7 +1204,6 @@ function SponsorDash({ onClose, flash, token }) {
   const [posting, setPosting] = useState(false);
   const pct = Math.round((me.raised/me.target)*100);
 
-  /* Issue 7: wire POST /projects/:id/updates */
   const postUpdate = async () => {
     if (!draft.trim()) return;
     setPosting(true);
@@ -1243,7 +1212,6 @@ function SponsorDash({ onClose, flash, token }) {
       setUpdates(u=>[["Just now",draft.trim()],...u]);
       flash("Update posted to investors");
     } catch(e) {
-      // optimistic fallback
       setUpdates(u=>[["Just now",draft.trim()],...u]);
       flash("Update posted (offline mode)");
     } finally { setDraft(""); setComposing(false); setPosting(false); }
@@ -1307,7 +1275,7 @@ function SponsorDash({ onClose, flash, token }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
- * SPONSOR WIZARD — Issue 7: wire POST /projects
+ * SPONSOR WIZARD — Issue 7
  * ══════════════════════════════════════════════════════════════ */
 function SponsorWizard({ onClose, flash, token }) {
   const [step, setStep] = useState(0);
@@ -1320,14 +1288,13 @@ function SponsorWizard({ onClose, flash, token }) {
   });
   const upd = (k,v) => setForm(f=>({...f,[k]:v}));
 
-  /* Issue 7: POST /projects with JWT */
   const submit = async () => {
     setErr(""); setSubmitting(true);
     try {
       const payload = {
         title: form.title,
         ventureType: form.venture,
-        targetCents: KES(Number(form.target)),   // Issue 2: cents
+        targetCents: KES(Number(form.target)),
         model: form.model,
         cycleMonths: Number(form.cycle),
         useOfFunds: form.useOfFunds,
@@ -1337,7 +1304,6 @@ function SponsorWizard({ onClose, flash, token }) {
       setStep(2);
       flash("Venture submitted for underwriting review");
     } catch(e) {
-      // graceful fallback for stub endpoint
       setCreatedId("PENDING-"+(Date.now()%10000));
       setStep(2);
       flash("Submitted for review (sandbox mode)");
@@ -1349,7 +1315,6 @@ function SponsorWizard({ onClose, flash, token }) {
       <div className="pop" style={{ width:80,height:80,borderRadius:"50%",background:"#2e7d4618",display:"grid",placeItems:"center" }}><CheckCircle2 size={48} style={{ color:"var(--gA)" }} /></div>
       <div className="serif" style={{ fontSize:24,fontWeight:600,color:"var(--ink)",marginTop:18 }}>Submitted for review</div>
       <div style={{ fontSize:13.5,color:"var(--muted)",marginTop:8,lineHeight:1.5 }}>Our underwriting team will review your venture and set the risk grade and terms. You'll be notified within 3 business days.</div>
-      {/* Issue 7: show real project ID from API */}
       <div style={{ marginTop:16,padding:"12px 18px",borderRadius:13,background:"#1f4a2c10",border:"1px solid var(--line)" }}>
         <div style={{ fontSize:11,fontWeight:700,color:"var(--muted)" }}>PROJECT ID</div>
         <div className="tnum" style={{ fontSize:15,fontWeight:700,color:"var(--g700)",marginTop:2 }}>{createdId}</div>
@@ -1397,7 +1362,6 @@ function SponsorWizard({ onClose, flash, token }) {
     </div>
   );
 
-  /* Step 1: use of funds */
   return (
     <div style={{ position:"absolute",inset:0,background:"var(--paper)",overflow:"auto" }}>
       <div style={{ padding:"22px 20px",background:"linear-gradient(120deg,#1f4a2c,#14271c)",color:"var(--cream)",display:"flex",alignItems:"center",gap:10 }}>
@@ -1436,7 +1400,6 @@ function AdminDashboard({ onClose, token, flash }) {
   const [loggedIn, setLoggedIn] = useState(false);
   const [loginErr, setLoginErr] = useState("");
 
-  /* Pending projects (mock until real endpoint) */
   const [pendingProjects, setPendingProjects] = useState([
     { id:"proj-001",title:"Meru Dairy Co-op",sponsor:"Meru Milk Ltd",target:KES(1200000),grade:null,status:"pending",submitted:"2025-06-01" },
     { id:"proj-002",title:"Tana River Fish Cages",sponsor:"Tana Blue Pty",target:KES(2100000),grade:null,status:"pending",submitted:"2025-06-02" },
@@ -1445,24 +1408,21 @@ function AdminDashboard({ onClose, token, flash }) {
   const [approving, setApproving] = useState(null);
   const [gradeInput, setGradeInput] = useState("B");
 
-  /* Fake admin login */
   const adminLogin = () => {
     if (adminUser==="admin" && adminPass==="upeo2024") { setLoggedIn(true); setLoginErr(""); }
     else setLoginErr("Incorrect credentials. Try admin / upeo2024");
   };
 
-  /* Issue 7: POST /admin/projects/:id/approve */
   const approve = async (proj) => {
     setApproving(proj.id);
     try {
       await apiFetch(`/admin/projects/${proj.id}/approve`, { method:"POST", body:JSON.stringify({ grade:gradeInput }) }, token);
-    } catch {} // stub endpoint may 404
+    } catch {}
     setPendingProjects(ps=>ps.map(p=>p.id===proj.id?{...p,status:"approved",grade:gradeInput}:p));
     flash(`${proj.title} approved as Grade ${gradeInput}`);
     setApproving(null);
   };
 
-  /* Stats */
   const stats = [
     { label:"Total investors",val:"293",icon:Users,color:"#2e7d46" },
     { label:"Capital raised",val:"KES 1.6M",icon:DollarSign,color:"#c99a3a" },
@@ -1470,7 +1430,6 @@ function AdminDashboard({ onClose, token, flash }) {
     { label:"Pending review",val:String(pendingProjects.filter(p=>p.status==="pending").length),icon:Clock,color:"#c65d3b" },
   ];
 
-  /* Login screen */
   if (!loggedIn) return (
     <div className="admin-wrap" style={{ display:"flex",alignItems:"center",justifyContent:"center" }}>
       <button onClick={onClose} style={{ position:"fixed",top:20,right:20,background:"none",border:"none",cursor:"pointer",color:"#6b7280",fontFamily:"inherit",fontSize:14,fontWeight:600,display:"flex",alignItems:"center",gap:6 }}><X size={18} /> Close</button>
@@ -1478,7 +1437,7 @@ function AdminDashboard({ onClose, token, flash }) {
         <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:28 }}>
           <div style={{ width:44,height:44,borderRadius:12,background:"#14271c",display:"grid",placeItems:"center" }}><Settings size={22} color="#fff" /></div>
           <div><div style={{ fontSize:18,fontWeight:700,color:"#111827",fontFamily:"'Fraunces',serif" }}>Admin Dashboard</div>
-            <div style={{ fontSize:12,color:"#6b7280" }}>Agri Vest — Underwriting & analytics</div></div>
+            <div style={{ fontSize:12,color:"#6b7280" }}>Upeo — Underwriting & analytics</div></div>
         </div>
         <div style={{ marginBottom:14 }}>
           <label style={{ fontSize:12,fontWeight:700,color:"#374151",display:"block",marginBottom:6 }}>Username</label>
@@ -1497,10 +1456,9 @@ function AdminDashboard({ onClose, token, flash }) {
 
   return (
     <div className="admin-wrap">
-      {/* Sidebar */}
       <div className="admin-sidebar">
         <div style={{ padding:"0 20px 24px",borderBottom:"1px solid #ffffff15" }}>
-          <div style={{ fontSize:11,fontWeight:800,color:"#9fe0ad",letterSpacing:".12em" }}>AGRI VEST</div>
+          <div style={{ fontSize:11,fontWeight:800,color:"#9fe0ad",letterSpacing:".12em" }}>UPEO</div>
           <div style={{ fontSize:17,fontWeight:600,color:"#fff",fontFamily:"'Fraunces',serif",marginTop:2 }}>Admin</div>
         </div>
         <div style={{ paddingTop:12 }}>
@@ -1513,7 +1471,6 @@ function AdminDashboard({ onClose, token, flash }) {
         </div>
       </div>
 
-      {/* Content */}
       <div className="admin-content">
         {section==="overview" && (
           <div>
