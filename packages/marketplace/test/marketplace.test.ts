@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PGlite } from "@electric-sql/pglite";
-import { migrate, PgAgriVest, KES } from "@agrivest/ledger";
+import { migrate, PgUpeo, KES } from "@upeo/ledger";
 import { MarketplaceService, migrateMarketplace } from "../src/marketplace.js";
 
 async function fresh() {
@@ -33,7 +33,7 @@ test("submit -> approve -> list shows the project as funding", async () => {
 test("funding progress is read live from the ledger and cross-checks", async () => {
   const db = await fresh();
   const m = new MarketplaceService(db);
-  const led = new PgAgriVest(db);
+  const led = new PgUpeo(db);
   await m.createSponsor("s1", "Sponsor One");
   await m.submitProject({
     id: "proj1", sponsorId: "s1", title: "P1", venture: "fish", location: "Homa Bay",

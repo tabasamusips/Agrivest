@@ -5,7 +5,7 @@ import { Ledger } from "./ledger.js";
  * single SERIALIZABLE DB transaction so the read-then-write guards are safe
  * under concurrency (see README).
  */
-export declare class AgriVest {
+export declare class Upeo {
     private coolingOffMs;
     readonly ledger: Ledger;
     private investments;

@@ -33,31 +33,31 @@ Postgres + Safaricom sandbox is the first thing to verify on your device.
 ## Project structure
 
 ```
-agrivest/
+upeo/
 ├─ package.json              # npm workspaces root
 ├─ .env.example              # copy to .env and fill in
 ├─ packages/
-│  ├─ ledger/                # @agrivest/ledger  (the money engine — CommonJS)
+│  ├─ ledger/                # @upeo/ledger  (the money engine — CommonJS)
 │  │  ├─ schema.sql          # Postgres DDL + invariant triggers
 │  │  ├─ src/
 │  │  │  ├─ money.ts         # integer-cents money type
 │  │  │  ├─ types.ts         # chart of accounts + journal shapes
 │  │  │  ├─ ledger.ts        # in-memory double-entry engine
-│  │  │  ├─ service.ts       # AgriVest ops (in-memory)
+│  │  │  ├─ service.ts       # Upeo ops (in-memory)
 │  │  │  ├─ prorata.ts       # exact largest-remainder split
 │  │  │  ├─ reconcile.ts     # invariant checks
 │  │  │  ├─ db.ts            # portable Queryable (pg + PGlite), migrate, withTx
-│  │  │  ├─ pg.ts            # PgAgriVest — Postgres-backed ops + advisory locks
+│  │  │  ├─ pg.ts            # PgUpeo — Postgres-backed ops + advisory locks
 │  │  │  └─ mpesa/           # Daraja client, helpers, PaymentsService
 │  │  ├─ test/               # 22 tests (engine, Postgres, M-Pesa)
 │  │  ├─ demo.ts             # narrated lifecycle: npm run demo
 │  │  ├─ README.md           # ledger deep-dive
 │  │  └─ PERSISTENCE.md      # Postgres layer deep-dive
-│  ├─ marketplace/           # @agrivest/marketplace  (sponsors, projects, funding)
+│  ├─ marketplace/           # @upeo/marketplace  (sponsors, projects, funding)
 │  │  ├─ schema.sql          # sponsor / project / project_update tables
 │  │  ├─ src/marketplace.ts  # MarketplaceService (funding read live from ledger)
 │  │  └─ test/
-│  └─ api/                   # @agrivest/api  (NestJS — depends on ledger + marketplace)
+│  └─ api/                   # @upeo/api  (NestJS — depends on ledger + marketplace)
 │     └─ src/
 │        ├─ main.ts          # bootstrap
 │        ├─ app.module.ts
@@ -95,10 +95,10 @@ npm install
 npm test
 
 # Run API end-to-end tests only
-npm run test:e2e -w @agrivest/api
+npm run test:e2e -w @upeo/api
 
 # See a narrated walkthrough of the ledger lifecycle
-npm run demo -w @agrivest/ledger
+npm run demo -w @upeo/ledger
 ```
 
 #### 3. Configure Environment
@@ -511,7 +511,7 @@ Create a `.env` file in the repository root. Copy from `.env.example` and fill i
 
 ```env
 # REQUIRED
-DATABASE_URL=postgresql://user:password@host:5432/agrivest
+DATABASE_URL=postgresql://user:password@host:5432/upeo
 JWT_SECRET=<any random string, minimum 32 characters>
 NODE_ENV=development
 
@@ -660,7 +660,7 @@ To enable deposits (STK push) and withdrawals (B2C), integrate with Safaricom's 
 
 1. ~~Verify the API end-to-end~~ ✅ done (PGlite e2e). Next: run the same flow
    against your Neon DB + a _live_ Daraja sandbox (real STK push to a phone).
-2. ~~Marketplace tables + service~~ ✅ done (`@agrivest/marketplace`).
+2. ~~Marketplace tables + service~~ ✅ done (`@upeo/marketplace`).
 3. ~~KYC guard on invest routes~~ ✅ wired — now add the verify flow that sets
    `kyc.status = 'verified'` (ID + liveness, per the prototype onboarding).
 4. **Sponsor onboarding UI** + richer underwriting workflow on top of the
@@ -673,9 +673,9 @@ To enable deposits (STK push) and withdrawals (B2C), integrate with Safaricom's 
 
 ## Related artifacts (separate files from this build)
 
-- `agrivest-design.md` — full product + architecture design.
-- `agrivest-design-prompt.md` — the reusable brief that generated it.
-- `AgriVestPrototype.jsx` — the interactive mobile UX prototype.
+- `upeo-design.md` — full product + architecture design.
+- `upeo-design-prompt.md` — the reusable brief that generated it.
+- `UpeoPrototype.jsx` — the interactive mobile UX prototype.
 
 > Not legal/financial advice. Operating this as a real investment platform in
 > Kenya requires CMA licensing (Investment-Based Crowdfunding Regulations, 2022),

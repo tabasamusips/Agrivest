@@ -9,7 +9,7 @@ application bugs.
 - `src/db.ts` — a portable `Queryable` interface, `migrate`, `withTx`, and a
   unique-violation detector. The same service code runs on **PGlite** (tests)
   and **node-postgres** (production).
-- `src/pg.ts` — `PgAgriVest`: every operation is one transaction; read-then-write
+- `src/pg.ts` — `PgUpeo`: every operation is one transaction; read-then-write
   guards take a per-account advisory lock. Plus `assertInvariantsPg` /
   `reconcileExternalPg`.
 - `test/pg.test.ts` — the full suite, run against real (WASM) Postgres.
@@ -31,7 +31,7 @@ cent with zero drift against the custodian statement.
 ## Wiring to production node-postgres
 ```ts
 import { Pool } from "pg";
-import { PgAgriVest } from "./src/pg.js";
+import { PgUpeo } from "./src/pg.js";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -40,7 +40,7 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 async function handleInvest(userId: string, projectId: string, amount: number) {
   const client = await pool.connect();
   try {
-    const av = new PgAgriVest(client);          // client satisfies Queryable
+    const av = new PgUpeo(client);          // client satisfies Queryable
     return await av.invest(userId, projectId, amount);
   } finally {
     client.release();

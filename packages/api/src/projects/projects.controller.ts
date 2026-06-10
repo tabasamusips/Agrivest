@@ -4,7 +4,7 @@ import { PG_POOL } from "../ledger/ledger.module.js";
 import { AuthGuard } from "../auth/auth.guard.js";
 import { withClient } from "../ledger/with-client.js";
 
-/** Marketplace catalogue, backed by @agrivest/marketplace with live funding from the ledger. */
+/** Marketplace catalogue, backed by @upeo/marketplace with live funding from the ledger. */
 @Controller("projects")
 export class ProjectsController {
   constructor(@Inject(PG_POOL) private pool: Pool) {}

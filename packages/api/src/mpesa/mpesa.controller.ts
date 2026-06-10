@@ -1,6 +1,6 @@
 import { Body, Controller, Inject, Post } from "@nestjs/common";
 import { Pool } from "pg";
-import { parseStkCallback, parseB2CResult } from "@agrivest/ledger";
+import { parseStkCallback, parseB2CResult } from "@upeo/ledger";
 import { PG_POOL } from "../ledger/ledger.module.js";
 import { withClient } from "../ledger/with-client.js";
 

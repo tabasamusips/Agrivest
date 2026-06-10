@@ -1,12 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { AgriVest } from "../src/service.js";
+import { Upeo } from "../src/service.js";
 import { assertInvariants, reconcileExternal } from "../src/reconcile.js";
 import { KES } from "../src/money.js";
 import { InsufficientFundsError, CoolingOffError } from "../src/errors.js";
 
 test("deposit then invest moves wallet -> escrow; can't over-invest", () => {
-  const av = new AgriVest();
+  const av = new Upeo();
   av.deposit("alice", KES(5000), "MP1");
   assert.equal(av.available("alice"), KES(5000));
   av.invest("alice", "p1", KES(3000));
@@ -17,7 +17,7 @@ test("deposit then invest moves wallet -> escrow; can't over-invest", () => {
 });
 
 test("cooling-off: refund inside 48h works, outside fails, and is one-shot", () => {
-  const av = new AgriVest();
+  const av = new Upeo();
   av.deposit("bob", KES(1000), "MP2");
   const t0 = Date.now();
   const e = av.invest("bob", "p1", KES(1000), t0);
@@ -35,7 +35,7 @@ test("cooling-off: refund inside 48h works, outside fails, and is one-shot", () 
 });
 
 test("full pooled lifecycle reconciles to the cent", () => {
-  const av = new AgriVest();
+  const av = new Upeo();
   // three pooled investors
   av.deposit("a", KES(50000), "D-a");
   av.deposit("b", KES(30000), "D-b");
@@ -86,7 +86,7 @@ test("full pooled lifecycle reconciles to the cent", () => {
 });
 
 test("pooled payout with an awkward pool still reconciles exactly", () => {
-  const av = new AgriVest();
+  const av = new Upeo();
   for (const [u, amt, ref] of [["x", 1, "dx"], ["y", 1, "dy"], ["z", 1, "dz"]] as const) {
     av.deposit(u, KES(amt), ref);
     av.invest(u, "p2", KES(amt));

@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 /* =============================================================================
- * AGRIVEST — FULLY WIRED (AgriVestComplete.jsx)
+ * UPEO — FULLY WIRED (UpeoComplete.jsx)
  *
  * Issues resolved:
  *   ✅ Issue 1: Auth chain: OTP → JWT → KYC (real API calls)
@@ -41,7 +41,7 @@ async function apiFetch(path, opts = {}, token = null) {
 }
 
 /* ─── Auth context helpers ─── */
-const TOKEN_KEY = "agrivest_jwt";
+const TOKEN_KEY = "upeo_jwt";
 const getToken = () => localStorage.getItem(TOKEN_KEY);
 const setToken = (t) => t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY);
 
@@ -206,7 +206,7 @@ function Spinner({ size=20, color="var(--g600)" }) {
 /* ═══════════════════════════════════════════════════════════════
  * MAIN APP
  * ══════════════════════════════════════════════════════════════ */
-export default function AgriVestComplete() {
+export default function UpeoComplete() {
   const [lang, setLang] = useState("en");
   const t = DICT[lang];
 
@@ -1447,8 +1447,8 @@ function AdminDashboard({ onClose, token, flash }) {
 
   /* Fake admin login */
   const adminLogin = () => {
-    if (adminUser==="admin" && adminPass==="agrivest2024") { setLoggedIn(true); setLoginErr(""); }
-    else setLoginErr("Incorrect credentials. Try admin / agrivest2024");
+    if (adminUser==="admin" && adminPass==="upeo2024") { setLoggedIn(true); setLoginErr(""); }
+    else setLoginErr("Incorrect credentials. Try admin / upeo2024");
   };
 
   /* Issue 7: POST /admin/projects/:id/approve */
@@ -1490,7 +1490,7 @@ function AdminDashboard({ onClose, token, flash }) {
         </div>
         {loginErr && <div style={{ marginBottom:14,fontSize:12.5,color:"#b5482f",fontWeight:600 }}>{loginErr}</div>}
         <button onClick={adminLogin} style={{ width:"100%",padding:"13px",background:"#14271c",color:"#fff",border:"none",borderRadius:12,fontSize:15,fontWeight:700,fontFamily:"inherit",cursor:"pointer" }}>Sign in</button>
-        <div style={{ marginTop:16,fontSize:11.5,color:"#9ca3af",textAlign:"center" }}>Hint: admin / agrivest2024</div>
+        <div style={{ marginTop:16,fontSize:11.5,color:"#9ca3af",textAlign:"center" }}>Hint: admin / upeo2024</div>
       </div>
     </div>
   );

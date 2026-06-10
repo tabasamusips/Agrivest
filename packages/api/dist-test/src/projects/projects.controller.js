@@ -18,7 +18,7 @@ const pg_1 = require("pg");
 const ledger_module_js_1 = require("../ledger/ledger.module.js");
 const auth_guard_js_1 = require("../auth/auth.guard.js");
 const with_client_js_1 = require("../ledger/with-client.js");
-/** Marketplace catalogue, backed by @agrivest/marketplace with live funding from the ledger. */
+/** Marketplace catalogue, backed by @upeo/marketplace with live funding from the ledger. */
 let ProjectsController = class ProjectsController {
     pool;
     constructor(pool) {

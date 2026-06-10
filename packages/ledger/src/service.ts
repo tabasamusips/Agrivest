@@ -20,7 +20,7 @@ const COOLING_OFF_MS = 48 * 60 * 60 * 1000; // CMA-mandated 48h cooling-off
  * single SERIALIZABLE DB transaction so the read-then-write guards are safe
  * under concurrency (see README).
  */
-export class AgriVest {
+export class Upeo {
   readonly ledger = new Ledger();
   private investments = new Map<string, Investment>();
 

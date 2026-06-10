@@ -1,4 +1,4 @@
-import { Queryable } from "@agrivest/ledger";
+import { Queryable } from "@upeo/ledger";
 /** Apply the marketplace schema. Run AFTER the ledger schema (it reads ledger tables). */
 export declare function migrateMarketplace(db: Queryable): Promise<void>;
 export interface ProjectInput {

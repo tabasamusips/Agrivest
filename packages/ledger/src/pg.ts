@@ -59,7 +59,7 @@ async function insertEntry(
  * service; every method is one transaction, and the read-then-write guards take
  * a per-account advisory lock so concurrent requests can't double-spend.
  */
-export class PgAgriVest {
+export class PgUpeo {
   constructor(private db: Queryable, private coolingOffMs = COOLING_OFF_MS) {}
 
   available(user: string) { return balance(this.db, `wallet:${user}`); }

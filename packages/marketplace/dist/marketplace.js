@@ -4,7 +4,7 @@ exports.MarketplaceService = void 0;
 exports.migrateMarketplace = migrateMarketplace;
 const node_fs_1 = require("node:fs");
 const node_path_1 = require("node:path");
-const ledger_1 = require("@agrivest/ledger");
+const ledger_1 = require("@upeo/ledger");
 const SCHEMA_SQL = (0, node_fs_1.readFileSync)((0, node_path_1.join)(__dirname, "..", "schema.sql"), "utf8");
 /** Apply the marketplace schema. Run AFTER the ledger schema (it reads ledger tables). */
 async function migrateMarketplace(db) {

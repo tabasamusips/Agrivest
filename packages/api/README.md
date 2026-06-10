@@ -1,15 +1,15 @@
-# @agrivest/api
+# @upeo/api
 
-NestJS HTTP layer over `@agrivest/ledger`. Auth (phone OTP → JWT), wallet
+NestJS HTTP layer over `@upeo/ledger`. Auth (phone OTP → JWT), wallet
 (deposit via M-Pesa STK push, withdraw via B2C), investing (solo/pooled +
 cooling-off cancel), and the public Daraja webhooks.
 
 ## Run
 ```bash
 cp ../../.env.example ../../.env   # fill DATABASE_URL, JWT_SECRET, MPESA_*
-npm run dev -w @agrivest/api       # tsx watch
+npm run dev -w @upeo/api       # tsx watch
 # or
-npm run build -w @agrivest/api && node dist/main.js
+npm run build -w @upeo/api && node dist/main.js
 ```
 
 ## How money operations stay safe

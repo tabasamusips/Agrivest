@@ -1,6 +1,6 @@
 import { Pool, PoolClient } from "pg";
-import { PgAgriVest, PaymentsService, HttpDarajaClient, DarajaConfig } from "@agrivest/ledger";
-import { MarketplaceService } from "@agrivest/marketplace";
+import { PgUpeo, PaymentsService, HttpDarajaClient, DarajaConfig } from "@upeo/ledger";
+import { MarketplaceService } from "@upeo/marketplace";
 
 export function darajaConfig(): DarajaConfig {
   return {
@@ -21,11 +21,11 @@ export function darajaConfig(): DarajaConfig {
 /** Acquire one client, build the ledger services on it, run, always release. */
 export async function withClient<T>(
   pool: Pool,
-  fn: (svc: { client: PoolClient; ledger: PgAgriVest; payments: PaymentsService; market: MarketplaceService }) => Promise<T>,
+  fn: (svc: { client: PoolClient; ledger: PgUpeo; payments: PaymentsService; market: MarketplaceService }) => Promise<T>,
 ): Promise<T> {
   const client = await pool.connect();
   try {
-    const ledger = new PgAgriVest(client as any);
+    const ledger = new PgUpeo(client as any);
     const payments = new PaymentsService(client as any, ledger, new HttpDarajaClient(darajaConfig()));
     const market = new MarketplaceService(client as any);
     return await fn({ client, ledger, payments, market });

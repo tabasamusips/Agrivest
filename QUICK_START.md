@@ -1,4 +1,4 @@
-# AgriVest Backend — Quick Start Reference
+# Upeo Backend — Quick Start Reference
 
 ## 5-Minute Setup
 
@@ -12,7 +12,7 @@ cp .env.example .env
 
 # 3. Test (verify everything works)
 npm test
-npm run test:e2e -w @agrivest/api
+npm run test:e2e -w @upeo/api
 
 # 4. Build
 npm run build
@@ -85,7 +85,7 @@ curl -X GET http://localhost:3000/projects | jq
 ## Environment
 
 ```env
-DATABASE_URL=postgresql://user:pass@host/agrivest
+DATABASE_URL=postgresql://user:pass@host/upeo
 JWT_SECRET=$(openssl rand -hex 32)
 NODE_ENV=development  # or production
 PORT=3000
@@ -103,10 +103,10 @@ PUBLIC_URL=https://...
 ```bash
 npm install                    # Install deps
 npm test                       # All tests (31 total)
-npm run test:e2e -w @agrivest/api  # API tests only
+npm run test:e2e -w @upeo/api  # API tests only
 npm run build                  # Build all packages
 npm run dev:api                # Run API (watch mode)
-npm run demo -w @agrivest/ledger   # See ledger walkthrough
+npm run demo -w @upeo/ledger   # See ledger walkthrough
 npm run typecheck              # TypeScript check
 ```
 
@@ -117,7 +117,7 @@ npm run typecheck              # TypeScript check
 | Can't connect to DB | Check `DATABASE_URL` in `.env`; test with `psql "$DATABASE_URL" -c "\dt"` |
 | Port 3000 in use | `PORT=3001 npm run dev:api` |
 | No devOtp returned | Set `NODE_ENV=development` in `.env` |
-| Tests fail | Ensure database exists; run `psql "$DATABASE_URL" -c "CREATE DATABASE agrivest"` |
+| Tests fail | Ensure database exists; run `psql "$DATABASE_URL" -c "CREATE DATABASE upeo"` |
 
 ## Deploy
 
@@ -132,9 +132,9 @@ npm run build
 ## More Info
 
 - Full API docs: `API-ENDPOINTS.md`
-- Design & architecture: `agrivest-design.md`
+- Design & architecture: `upeo-design.md`
 - Ledger deep-dive: `packages/ledger/README.md`
-- UX prototype: `AgriVestPrototype.jsx`
+- UX prototype: `UpeoPrototype.jsx`
 
 ---
 

@@ -23,7 +23,7 @@
             "name": "Run Script: start (api)",
             "request": "launch",
             "command": "yarn run start",
-            "cwd": "${workspaceFolder}/agrivest/packages/api"
+            "cwd": "${workspaceFolder}/upeo/packages/api"
         }
     ]
 }

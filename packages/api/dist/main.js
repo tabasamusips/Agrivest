@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv = __importStar(require("dotenv"));
-dotenv.config({ path: '/data/data/org.smartide.code/files/home/projects/Agrivest/.env' });
+dotenv.config({ path: '/data/data/org.smartide.code/files/home/projects/Upeo/.env' });
 const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
 async function bootstrap() {

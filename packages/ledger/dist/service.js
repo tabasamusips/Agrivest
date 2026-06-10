@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AgriVest = void 0;
+exports.Upeo = void 0;
 const ledger_js_1 = require("./ledger.js");
 const prorata_js_1 = require("./prorata.js");
 const money_js_1 = require("./money.js");
@@ -12,7 +12,7 @@ const COOLING_OFF_MS = 48 * 60 * 60 * 1000; // CMA-mandated 48h cooling-off
  * single SERIALIZABLE DB transaction so the read-then-write guards are safe
  * under concurrency (see README).
  */
-class AgriVest {
+class Upeo {
     coolingOffMs;
     ledger = new ledger_js_1.Ledger();
     investments = new Map();
@@ -164,4 +164,4 @@ class AgriVest {
             throw new errors_js_1.LedgerError(`amount must be positive: ${amount}`);
     }
 }
-exports.AgriVest = AgriVest;
+exports.Upeo = Upeo;

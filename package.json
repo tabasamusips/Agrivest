@@ -1,5 +1,5 @@
 {
-    "name": "agrivest",
+    "name": "upeo",
     "private": true,
     "version": "0.1.0",
     "description": "Agri Vest — agricultural investment platform (ledger core, M-Pesa, API + React frontend)",
@@ -10,14 +10,14 @@
     ],
     "scripts": {
         "dev": "concurrently --names API,WEB --prefix-colors green,blue \"npm run dev:api\" \"vite\"",
-        "dev:api": "npm run dev -w @agrivest/api",
+        "dev:api": "npm run dev -w @upeo/api",
         "dev:web": "vite",
-        "build": "npm run build -w @agrivest/ledger && npm run build -w @agrivest/marketplace && npm run build -w @agrivest/api && vite build",
-        "build:api": "npm run build -w @agrivest/ledger && npm run build -w @agrivest/marketplace && npm run build -w @agrivest/api",
+        "build": "npm run build -w @upeo/ledger && npm run build -w @upeo/marketplace && npm run build -w @upeo/api && vite build",
+        "build:api": "npm run build -w @upeo/ledger && npm run build -w @upeo/marketplace && npm run build -w @upeo/api",
         "build:web": "vite build",
-        "test": "npm test -w @agrivest/ledger && npm test -w @agrivest/marketplace",
-        "test:e2e": "npm run test:e2e -w @agrivest/api",
-        "typecheck": "npm run typecheck -w @agrivest/ledger && npm run typecheck -w @agrivest/marketplace && npm run typecheck -w @agrivest/api",
+        "test": "npm test -w @upeo/ledger && npm test -w @upeo/marketplace",
+        "test:e2e": "npm run test:e2e -w @upeo/api",
+        "typecheck": "npm run typecheck -w @upeo/ledger && npm run typecheck -w @upeo/marketplace && npm run typecheck -w @upeo/api",
         "start": "node packages/api/dist/main.js"
     },
     "devDependencies": {

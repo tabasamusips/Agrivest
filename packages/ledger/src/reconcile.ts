@@ -1,4 +1,4 @@
-import { AgriVest } from "./service.js";
+import { Upeo } from "./service.js";
 import { accountType, isDebitNormal, mustStayNonNegative } from "./types.js";
 import { ReconcileError } from "./errors.js";
 
@@ -6,7 +6,7 @@ import { ReconcileError } from "./errors.js";
  * The checks an operator (and a cron job) runs to trust the books.
  * Throws ReconcileError listing every problem found.
  */
-export function assertInvariants(av: AgriVest): void {
+export function assertInvariants(av: Upeo): void {
   const L = av.ledger;
   const problems: string[] = [];
 
@@ -48,7 +48,7 @@ export function assertInvariants(av: AgriVest): void {
 }
 
 /** Compare ledger cash to the custodian/M-Pesa statement; report any drift. */
-export function reconcileExternal(av: AgriVest, statementCents: number) {
+export function reconcileExternal(av: Upeo, statementCents: number) {
   const onLedger = av.ledger.balance("mpesa_clearing");
   return { onLedger, statement: statementCents, drift: onLedger - statementCents };
 }

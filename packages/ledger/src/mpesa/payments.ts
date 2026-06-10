@@ -1,5 +1,5 @@
 import { Queryable, withTx } from "../db.js";
-import { PgAgriVest } from "../pg.js";
+import { PgUpeo } from "../pg.js";
 import { LedgerError } from "../errors.js";
 import {
   DarajaClient, StkResult, B2CResult, centsToWholeKES,
@@ -13,7 +13,7 @@ import {
 export class PaymentsService {
   constructor(
     private db: Queryable,
-    private ledger: PgAgriVest,
+    private ledger: PgUpeo,
     private daraja: DarajaClient,
   ) {}
 

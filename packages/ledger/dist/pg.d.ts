@@ -4,7 +4,7 @@ import { Queryable } from "./db.js";
  * service; every method is one transaction, and the read-then-write guards take
  * a per-account advisory lock so concurrent requests can't double-spend.
  */
-export declare class PgAgriVest {
+export declare class PgUpeo {
     private db;
     private coolingOffMs;
     constructor(db: Queryable, coolingOffMs?: number);

@@ -1,5 +1,5 @@
 {
-    "name": "@agrivest/api",
+    "name": "@upeo/api",
     "version": "0.1.0",
     "private": true,
     "scripts": {
@@ -9,8 +9,8 @@
         "test:e2e": "jest --config jest-e2e.json --forceExit"
     },
     "dependencies": {
-        "@agrivest/ledger": "*",
-        "@agrivest/marketplace": "*",
+        "@upeo/ledger": "*",
+        "@upeo/marketplace": "*",
         "@nestjs/common": "^10.0.0",
         "@nestjs/core": "^10.0.0",
         "@nestjs/jwt": "^10.0.0",

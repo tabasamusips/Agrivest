@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PGlite } from "@electric-sql/pglite";
 import { migrate, withTx } from "../src/db.js";
-import { PgAgriVest, assertInvariantsPg, reconcileExternalPg } from "../src/pg.js";
+import { PgUpeo, assertInvariantsPg, reconcileExternalPg } from "../src/pg.js";
 import { KES } from "../src/money.js";
 import { InsufficientFundsError, CoolingOffError, IdempotencyError } from "../src/errors.js";
 
@@ -14,7 +14,7 @@ async function fresh() {
 
 test("schema migrates and the rollup tracks balances", async () => {
   const db = await fresh();
-  const av = new PgAgriVest(db);
+  const av = new PgUpeo(db);
   await av.deposit("a", KES(1000), "D1");
   assert.equal(await av.available("a"), KES(1000));
   assert.equal(await av.balanceOf("mpesa_clearing"), KES(1000));
@@ -23,7 +23,7 @@ test("schema migrates and the rollup tracks balances", async () => {
 
 test("idempotency: replaying an M-Pesa ref does not double-credit", async () => {
   const db = await fresh();
-  const av = new PgAgriVest(db);
+  const av = new PgUpeo(db);
   await av.deposit("a", KES(500), "MP-DUP");
   await assert.rejects(() => av.deposit("a", KES(500), "MP-DUP"), IdempotencyError);
   assert.equal(await av.available("a"), KES(500)); // still just one credit
@@ -31,7 +31,7 @@ test("idempotency: replaying an M-Pesa ref does not double-credit", async () => 
 
 test("over-investing is rejected by the advisory-locked guard", async () => {
   const db = await fresh();
-  const av = new PgAgriVest(db);
+  const av = new PgUpeo(db);
   await av.deposit("a", KES(2000), "D2");
   await av.invest("a", "p1", KES(1500));
   assert.equal(await av.available("a"), KES(500));
@@ -41,14 +41,14 @@ test("over-investing is rejected by the advisory-locked guard", async () => {
 
 test("append-only: a raw UPDATE on postings is refused by the DB", async () => {
   const db = await fresh();
-  const av = new PgAgriVest(db);
+  const av = new PgUpeo(db);
   await av.deposit("a", KES(100), "D3");
   await assert.rejects(() => db.query("UPDATE posting SET amount = 0 WHERE account = 'wallet:a'"));
 });
 
 test("cooling-off refund works inside 48h, fails outside, one-shot", async () => {
   const db = await fresh();
-  const av = new PgAgriVest(db);
+  const av = new PgUpeo(db);
   await av.deposit("bob", KES(1000), "D4");
   const id = await av.invest("bob", "p1", KES(1000));
   assert.equal(await av.available("bob"), 0);
@@ -63,7 +63,7 @@ test("cooling-off refund works inside 48h, fails outside, one-shot", async () =>
 
 test("full pooled lifecycle reconciles to the cent (in Postgres)", async () => {
   const db = await fresh();
-  const av = new PgAgriVest(db);
+  const av = new PgUpeo(db);
   await av.deposit("a", KES(50000), "Da");
   await av.deposit("b", KES(30000), "Db");
   await av.deposit("c", KES(20000), "Dc");
@@ -96,7 +96,7 @@ test("full pooled lifecycle reconciles to the cent (in Postgres)", async () => {
 
 test("awkward pro-rata pool loses no cent", async () => {
   const db = await fresh();
-  const av = new PgAgriVest(db);
+  const av = new PgUpeo(db);
   for (const u of ["x", "y", "z"]) { await av.deposit(u, KES(1), "d" + u); await av.invest(u, "p2", KES(1)); }
   await av.disburse("p2", KES(3), "b2");
   await av.recordReturn("p2", KES(4), "r2");

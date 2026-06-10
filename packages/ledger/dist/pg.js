@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PgAgriVest = void 0;
+exports.PgUpeo = void 0;
 exports.assertInvariantsPg = assertInvariantsPg;
 exports.reconcileExternalPg = reconcileExternalPg;
 const db_js_1 = require("./db.js");
@@ -53,7 +53,7 @@ async function insertEntry(db, e) {
  * service; every method is one transaction, and the read-then-write guards take
  * a per-account advisory lock so concurrent requests can't double-spend.
  */
-class PgAgriVest {
+class PgUpeo {
     db;
     coolingOffMs;
     constructor(db, coolingOffMs = COOLING_OFF_MS) {
@@ -200,7 +200,7 @@ class PgAgriVest {
             throw new errors_js_1.LedgerError(`amount must be positive: ${amount}`);
     }
 }
-exports.PgAgriVest = PgAgriVest;
+exports.PgUpeo = PgUpeo;
 /** Reconciliation straight off the rollup table. Throws on any problem. */
 async function assertInvariantsPg(db) {
     const rows = (await db.query("SELECT account, raw FROM account_balance")).rows

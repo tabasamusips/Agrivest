@@ -1,9 +1,9 @@
 /** Narrated lifecycle: run with `npx tsx demo.ts` */
-import { AgriVest } from "./src/service.js";
+import { Upeo } from "./src/service.js";
 import { assertInvariants, reconcileExternal } from "./src/reconcile.js";
 import { KES, fmt } from "./src/money.js";
 
-const av = new AgriVest();
+const av = new Upeo();
 const show = (label: string) => {
   console.log(`\n— ${label} —`);
   for (const a of av.ledger.accounts()) console.log(`   ${a.padEnd(18)} ${fmt(av.ledger.balance(a))}`);

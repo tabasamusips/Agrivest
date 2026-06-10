@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { Queryable, withTx } from "@agrivest/ledger";
+import { Queryable, withTx } from "@upeo/ledger";
 
 const SCHEMA_SQL = readFileSync(join(__dirname, "..", "schema.sql"), "utf8");
 

@@ -1,5 +1,5 @@
 {
-  "name": "@agrivest/marketplace",
+  "name": "@upeo/marketplace",
   "version": "0.1.0",
   "description": "Agri Vest marketplace — sponsors, projects, funding progress (reads the ledger)",
   "main": "dist/index.js",
@@ -9,7 +9,7 @@
     "test": "node --import tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": { "@agrivest/ledger": "*" },
+  "dependencies": { "@upeo/ledger": "*" },
   "devDependencies": {
     "@electric-sql/pglite": "^0.2",
     "@types/node": "^22",

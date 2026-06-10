@@ -1,5 +1,5 @@
 import { Queryable } from "../db.js";
-import { PgAgriVest } from "../pg.js";
+import { PgUpeo } from "../pg.js";
 import { DarajaClient, StkResult, B2CResult } from "./daraja.js";
 /**
  * Bridges M-Pesa <-> the ledger. The crucial property: the M-Pesa receipt is
@@ -10,7 +10,7 @@ export declare class PaymentsService {
     private db;
     private ledger;
     private daraja;
-    constructor(db: Queryable, ledger: PgAgriVest, daraja: DarajaClient);
+    constructor(db: Queryable, ledger: PgUpeo, daraja: DarajaClient);
     /** Investor taps "Deposit" -> STK push to their phone. Money lands on callback. */
     initiateDeposit(user: string, amountCents: number, phone: string): Promise<{
         checkoutRequestId: string;

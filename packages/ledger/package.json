@@ -1,5 +1,5 @@
 {
-  "name": "@agrivest/ledger",
+  "name": "@upeo/ledger",
   "version": "0.1.0",
   "description": "Double-entry append-only ledger + M-Pesa adapter for Agri Vest",
   "main": "dist/index.js",

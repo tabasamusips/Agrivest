@@ -1,6 +1,6 @@
-# AgriVest Backend — Run Scripts
+# Upeo Backend — Run Scripts
 
-Complete scripts to set up, configure, and run the AgriVest backend.
+Complete scripts to set up, configure, and run the Upeo backend.
 
 ## Overview
 
@@ -103,7 +103,7 @@ run.bat dev
 
 ```
 ╔════════════════════════════════════════════════════════╗
-║ Setting up AgriVest Backend                            ║
+║ Setting up Upeo Backend                            ║
 ╚════════════════════════════════════════════════════════╝
 
 ✓ Node.js v20.x.x found
@@ -146,7 +146,7 @@ Next steps:
 
 ```
 ╔════════════════════════════════════════════════════════╗
-║ AgriVest API — Development Mode                        ║
+║ Upeo API — Development Mode                        ║
 ╚════════════════════════════════════════════════════════╝
 
 ℹ Starting API server with auto-reload (tsx watch)...
@@ -176,7 +176,7 @@ Edit a file, save, and the API reloads automatically.
 
 ```
 ╔════════════════════════════════════════════════════════╗
-║ AgriVest API — Production Mode                         ║
+║ Upeo API — Production Mode                         ║
 ╚════════════════════════════════════════════════════════╝
 
 ✓ Starting API server...
@@ -202,7 +202,7 @@ Set `NODE_ENV=production` to disable dev features (like returning OTP codes).
 
 ```
 ╔════════════════════════════════════════════════════════╗
-║ Building AgriVest                                      ║
+║ Building Upeo                                      ║
 ╚════════════════════════════════════════════════════════╝
 
 ℹ Building all packages...
@@ -328,7 +328,7 @@ Ledger Lifecycle Demo
 
 ```
 ╔════════════════════════════════════════════════════════╗
-║ AgriVest Backend — Database Setup                      ║
+║ Upeo Backend — Database Setup                      ║
 ╚════════════════════════════════════════════════════════╝
 
 ✓ psql found
@@ -403,7 +403,7 @@ Both scripts use these variables from `.env`:
 
 ```env
 # Required
-DATABASE_URL=postgresql://user:password@host:5432/agrivest
+DATABASE_URL=postgresql://user:password@host:5432/upeo
 JWT_SECRET=<32+ character random string>
 
 # Optional
@@ -435,7 +435,7 @@ openssl rand -hex 32
 ```bash
 # 1. Clone & install
 git clone <repo>
-cd agrivest
+cd upeo
 ./run.sh setup
 
 # 2. Configure database

@@ -1,4 +1,4 @@
-# AgriVest API Endpoints
+# Upeo API Endpoints
 
 Complete reference for all implemented endpoints. Money is always **integer minor units (cents)** at the API boundary.
 
@@ -572,7 +572,7 @@ Create a `.env` file in the repository root:
 
 ```env
 # Database
-DATABASE_URL=postgresql://user:password@localhost:5432/agrivest
+DATABASE_URL=postgresql://user:password@localhost:5432/upeo
 
 # JWT
 JWT_SECRET=your-secret-key-min-32-chars-long
@@ -609,10 +609,10 @@ psql "$DATABASE_URL" -f packages/api/sql/auth.sql
 
 # 4. Run tests
 npm test                              # all tests
-npm run test:e2e -w @agrivest/api     # API e2e only
+npm run test:e2e -w @upeo/api     # API e2e only
 
 # 5. Start dev server
-npm run dev -w @agrivest/api          # http://localhost:3000
+npm run dev -w @upeo/api          # http://localhost:3000
 ```
 
 ---

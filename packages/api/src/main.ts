@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 import * as path from "path";
 
-dotenv.config({ path: '/data/data/org.smartide.code/files/home/projects/Agrivest/.env' });
+dotenv.config({ path: '/data/data/org.smartide.code/files/home/projects/Upeo/.env' });
 
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";

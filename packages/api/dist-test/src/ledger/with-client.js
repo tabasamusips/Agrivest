@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.darajaConfig = darajaConfig;
 exports.withClient = withClient;
-const ledger_1 = require("@agrivest/ledger");
-const marketplace_1 = require("@agrivest/marketplace");
+const ledger_1 = require("@upeo/ledger");
+const marketplace_1 = require("@upeo/marketplace");
 function darajaConfig() {
     return {
         baseUrl: process.env.MPESA_BASE_URL ?? "https://sandbox.safaricom.co.ke",
@@ -23,7 +23,7 @@ function darajaConfig() {
 async function withClient(pool, fn) {
     const client = await pool.connect();
     try {
-        const ledger = new ledger_1.PgAgriVest(client);
+        const ledger = new ledger_1.PgUpeo(client);
         const payments = new ledger_1.PaymentsService(client, ledger, new ledger_1.HttpDarajaClient(darajaConfig()));
         const market = new marketplace_1.MarketplaceService(client);
         return await fn({ client, ledger, payments, market });

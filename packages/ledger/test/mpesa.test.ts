@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PGlite } from "@electric-sql/pglite";
 import { migrate } from "../src/db.js";
-import { PgAgriVest } from "../src/pg.js";
+import { PgUpeo } from "../src/pg.js";
 import { PaymentsService } from "../src/mpesa/payments.js";
 import {
   darajaTimestamp, stkPassword, centsToWholeKES, parseStkCallback, parseB2CResult,
@@ -49,7 +49,7 @@ class FakeDaraja implements DarajaClient {
 test("deposit flow: STK push -> callback -> wallet credited, and idempotent on retry", async () => {
   const db = await PGlite.create();
   await migrate(db);
-  const ledger = new PgAgriVest(db);
+  const ledger = new PgUpeo(db);
   const daraja = new FakeDaraja();
   const pay = new PaymentsService(db, ledger, daraja);
 
@@ -74,7 +74,7 @@ test("deposit flow: STK push -> callback -> wallet credited, and idempotent on r
 test("withdrawal flow: wallet debited, B2C failure compensates", async () => {
   const db = await PGlite.create();
   await migrate(db);
-  const ledger = new PgAgriVest(db);
+  const ledger = new PgUpeo(db);
   const pay = new PaymentsService(db, ledger, new FakeDaraja());
   await ledger.deposit("bob", KES(1000), "seed");
 

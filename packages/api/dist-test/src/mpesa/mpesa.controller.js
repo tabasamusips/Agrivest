@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MpesaController = void 0;
 const common_1 = require("@nestjs/common");
 const pg_1 = require("pg");
-const ledger_1 = require("@agrivest/ledger");
+const ledger_1 = require("@upeo/ledger");
 const ledger_module_js_1 = require("../ledger/ledger.module.js");
 const with_client_js_1 = require("../ledger/with-client.js");
 /**

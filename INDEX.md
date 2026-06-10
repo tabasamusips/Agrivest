@@ -4,24 +4,24 @@ Everything built for the Agri Vest agricultural investment platform, in the
 order it was created. Start with whichever matches what you need.
 
 ## 1. Design & planning
-- **`agrivest-design-prompt.md`** — the reusable brief that generated the design.
-- **`agrivest-design.md`** — full product + architecture design: personas, ROI
+- **`upeo-design-prompt.md`** — the reusable brief that generated the design.
+- **`upeo-design.md`** — full product + architecture design: personas, ROI
   and risk mechanics, solo vs. pooled, UX, full-stack architecture, the Kenyan
   CMA regulatory posture, MVP scope, and open questions.
 
 ## 2. UX prototype
-- **`AgriVestComplete.jsx`** — the finished single-file app: every flow plus a
+- **`UpeoComplete.jsx`** — the finished single-file app: every flow plus a
   *working in-memory double-entry ledger* (deposit→wallet, invest→escrow,
   cooling-off refund, sponsor return→pro-rata payout) and a live "Ledger engine"
   view. Self-contained; open in the artifact viewer or any React project.
-- **`AgriVestPrototype.jsx`** — the earlier interactive prototype.
+- **`UpeoPrototype.jsx`** — the earlier interactive prototype.
   Onboarding/KYC → discover → project detail (with honest expected/downside +
   "what if it fails") → pooled invest → M-Pesa → portfolio, plus a sponsor
   dashboard and EN↔SW toggle. Open it in the artifact viewer, or drop into any
   React/Vite project.
 
-## 3. Backend monorepo — `agrivest/`
-Correctness-first backend. **31 automated tests pass.** See `agrivest/README.md`
+## 3. Backend monorepo — `upeo/`
+Correctness-first backend. **31 automated tests pass.** See `upeo/README.md`
 for the full continuation guide (setup, env, free-tier deploy, M-Pesa sandbox).
 
 | Package | What | Tests |
@@ -31,10 +31,10 @@ for the full continuation guide (setup, env, free-tier deploy, M-Pesa sandbox).
 | `packages/api` | NestJS API: auth (OTP→JWT), wallet, invest, M-Pesa webhooks, KYC | **6 (e2e)** |
 
 ```bash
-cd agrivest
+cd upeo
 npm install
 npm test                 # 25 passing
-npm run demo -w @agrivest/ledger
+npm run demo -w @upeo/ledger
 ```
 
 ## What's solid vs. what's next

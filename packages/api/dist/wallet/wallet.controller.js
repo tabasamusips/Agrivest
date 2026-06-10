@@ -14,54 +14,64 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WalletController = void 0;
 const common_1 = require("@nestjs/common");
-const pg_1 = require("pg");
-const ledger_module_js_1 = require("../ledger/ledger.module.js");
 const auth_guard_js_1 = require("../auth/auth.guard.js");
-const with_client_js_1 = require("../ledger/with-client.js");
+const pg_1 = require("pg");
+const db = new pg_1.Pool({ connectionString: process.env.DATABASE_URL });
+async function ensureUser(userId) {
+    await db.query(`INSERT INTO users (id, phone) VALUES ($1, $1) ON CONFLICT (id) DO NOTHING`, [userId]);
+    await db.query(`INSERT INTO wallets (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`, [userId]);
+}
 let WalletController = class WalletController {
-    pool;
-    constructor(pool) {
-        this.pool = pool;
+    async balance(req) {
+        await ensureUser(req.user.sub);
+        const { rows } = await db.query(`SELECT balance_cents FROM wallets WHERE user_id = $1`, [req.user.sub]);
+        return { balance: rows[0]?.balance_cents ?? 0 };
     }
-    balance(req) {
-        return (0, with_client_js_1.withClient)(this.pool, async ({ ledger }) => ({
-            cents: await ledger.available(req.user.sub),
-        }));
+    async deposit(req, b) {
+        await ensureUser(req.user.sub);
+        await db.query(`UPDATE wallets SET balance_cents = balance_cents + $1, updated_at = now() WHERE user_id = $2`, [b.amount, req.user.sub]);
+        await db.query(`INSERT INTO transactions (user_id, type, amount_cents, ref, status) VALUES ($1, 'deposit', $2, 'mpesa-sandbox', 'completed')`, [req.user.sub, b.amount]);
+        const { rows } = await db.query(`SELECT balance_cents FROM wallets WHERE user_id = $1`, [req.user.sub]);
+        return { balance: rows[0].balance_cents, status: "completed" };
     }
-    deposit(req, b) {
-        return (0, with_client_js_1.withClient)(this.pool, ({ payments }) => payments.initiateDeposit(req.user.sub, b.amountCents, b.phone));
-    }
-    withdraw(req, b) {
-        return (0, with_client_js_1.withClient)(this.pool, ({ payments }) => payments.initiateWithdrawal(req.user.sub, b.amountCents, b.phone));
+    async withdraw(req, b) {
+        await ensureUser(req.user.sub);
+        const { rows } = await db.query(`SELECT balance_cents FROM wallets WHERE user_id = $1`, [req.user.sub]);
+        const bal = rows[0]?.balance_cents ?? 0;
+        if (bal < b.amount)
+            throw new Error("Insufficient balance");
+        await db.query(`UPDATE wallets SET balance_cents = balance_cents - $1, updated_at = now() WHERE user_id = $2`, [b.amount, req.user.sub]);
+        await db.query(`INSERT INTO transactions (user_id, type, amount_cents, ref, status) VALUES ($1, 'withdraw', $2, 'mpesa-sandbox', 'completed')`, [req.user.sub, b.amount]);
+        return { status: "completed" };
     }
 };
 exports.WalletController = WalletController;
 __decorate([
+    (0, common_1.UseGuards)(auth_guard_js_1.AuthGuard),
     (0, common_1.Get)("balance"),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], WalletController.prototype, "balance", null);
 __decorate([
+    (0, common_1.UseGuards)(auth_guard_js_1.AuthGuard),
     (0, common_1.Post)("deposit"),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], WalletController.prototype, "deposit", null);
 __decorate([
+    (0, common_1.UseGuards)(auth_guard_js_1.AuthGuard),
     (0, common_1.Post)("withdraw"),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], WalletController.prototype, "withdraw", null);
 exports.WalletController = WalletController = __decorate([
-    (0, common_1.UseGuards)(auth_guard_js_1.AuthGuard),
-    (0, common_1.Controller)("wallet"),
-    __param(0, (0, common_1.Inject)(ledger_module_js_1.PG_POOL)),
-    __metadata("design:paramtypes", [pg_1.Pool])
+    (0, common_1.Controller)("wallet")
 ], WalletController);

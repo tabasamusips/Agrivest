@@ -1,6 +1,6 @@
-# 🚀 AgriVest Backend — Start Here!
+# 🚀 Upeo Backend — Start Here!
 
-Welcome! This file shows you how to get started with the AgriVest backend in **3 minutes**.
+Welcome! This file shows you how to get started with the Upeo backend in **3 minutes**.
 
 ---
 
@@ -163,7 +163,7 @@ More help: See `SCRIPTS.md`
 ## Project Structure
 
 ```
-agrivest/
+upeo/
 ├─ run.sh              Main script (macOS/Linux)
 ├─ run.bat             Main script (Windows)
 ├─ setup-db.sh         Database setup (macOS/Linux)
@@ -187,7 +187,7 @@ agrivest/
 - **QUICK_START.md** — Quick reference card
 - **API-ENDPOINTS.md** — All 18 endpoints with examples
 - **SCRIPTS.md** — Complete script documentation
-- **agrivest-design.md** — Product & architecture design
+- **upeo-design.md** — Product & architecture design
 
 ---
 
